@@ -9,8 +9,8 @@ router.post('/importWallet', wallet.importWallet);
 
 router.post('/decryptWallet', wallet.decryptWallet)
 
-router.post('/fundWallet',wallet.createWallet)  
+router.post('/fundWallet',wallet.fundWallet)  
 
-router.get('/getBalance',wallet.createWallet)
+router.get('/getBalance',wallet.getBalance)
 
 module.exports = router;
