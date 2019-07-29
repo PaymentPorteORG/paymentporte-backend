@@ -1,13 +1,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const logger = require('./utils/logger')
+const logger = require('./src/utils/logger')
 const config = require('config');
+var cors = require('cors');
 
 const app = express();
+app.use(cors());
 
-const wallet = require('./routes/wallet.js');
-const trustline = require('./routes/trustline');
-const transaction = require('./routes/transaction');
+const createWallet = require('./src/routes/createWallet.js');
+const trustline = require('./src/routes/trustline');
+const transaction = require('./src/routes/transaction');
 
 const PORT = config.get('development.server.port');
 
@@ -19,7 +21,7 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use('/', wallet);
+app.use('/', createWallet);
 app.use('/',trustline);
 app.use('/',transaction)
 app.get('*', function(req, res) {
