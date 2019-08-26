@@ -3,13 +3,23 @@ const bodyParser = require('body-parser');
 const logger = require('./src/utils/logger')
 const config = require('config');
 var cors = require('cors');
+var cookieParser = require('cookie-parser');
+const session = require('express-session');
+const Middlewares = require('./src/middleware/handlers');
 
 const app = express();
 app.use(cors());
+app.use(cookieParser());
+app.use(
+    session({
+      secret: 'qwerty',
+      cookie:{_expires : 3000000 }, // time im ms
+      resave: true,
+      saveUninitialized: true
+    })
+);
 
-const createWallet = require('./src/routes/createWallet.js');
-const trustline = require('./src/routes/trustline');
-const transaction = require('./src/routes/transaction');
+const createWallet = require('./src/routes/wallet');
 
 const PORT = config.get('development.server.port');
 
@@ -21,12 +31,10 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use('/', createWallet);
-app.use('/',trustline);
-app.use('/',transaction)
-app.get('*', function(req, res) {
-    res.redirect('/');
-});
+app.use('/wallet', createWallet);
+
+app.use(Middlewares.ErrorHandler);
+app.use(Middlewares.InvalidRoute);
 
 app.listen(PORT, function(){
     logger.info(`server started on PORT : ${PORT}`)
