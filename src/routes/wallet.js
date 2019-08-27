@@ -5,61 +5,62 @@ const wallet = require('../controllers/wallet');
 const operations = require('../controllers/operations');
 const { celebrate } = require('celebrate');
 const WalletSchema = require('../validations/wallet.validations')
+const auth = require('./../middleware/authorization');
 
 /** creates a new wallet for the user */
-router.post('/createWallet',
+router.post('/createWallet', auth.basicAuth, auth.userAuth,
     celebrate(WalletSchema.createWallet),
     wallet.createWallet
 );
 
 /** imports the user wallet */
-router.post('/importWallet',
+router.post('/importWallet',auth.basicAuth, auth.userAuth,
     celebrate(WalletSchema.importWallet),
     wallet.importWallet
 );
 
 /** decrypt the user wallet data */
-router.post('/decryptWallet',
+router.post('/decryptWallet',auth.basicAuth,
     celebrate(WalletSchema.decryptWallet),
     wallet.decryptWallet
 );
 
 /** provides loan to new users */
-router.post('/fundWallet',
+router.post('/fundWallet',auth.basicAuth, auth.userAuth,
     wallet.fundWallet
 );
 
 /** gets the balance of user wallet */
-router.get('/getBalance',
+router.get('/getBalance',auth.basicAuth, auth.userAuth,
     celebrate(WalletSchema.getBalance),
     wallet.getBalance
 );
 
 /** merge user's account with funding account to recover loan funds */
-router.post('/deleteAccount',
+router.post('/deleteAccount',auth.basicAuth,
     operations.deleteAccount
 );
 
 /** returns the wallet balance and transaction history */
-router.get('/dashboard',
+router.get('/dashboard',auth.basicAuth,
     celebrate(WalletSchema.dashboard),
     wallet.dashboard
 );
 
 /** creates a trustline with PORTE token */
-router.post('/createTrustline',
+router.post('/createTrustline',auth.basicAuth,
     celebrate(WalletSchema.createTrustline),
     operations.createTrustline
 );
 
 /** sends the PORTE/XLM to others*/
-router.post('/send',
+router.post('/send',auth.basicAuth,
     celebrate(WalletSchema.send),
     wallet.send
 );
 
 /** pays off the loan provided on wallet creation */
-router.post('/payCredits',
+router.post('/payCredits',auth.basicAuth, auth.userAuth,
     wallet.payCredits
 );
 

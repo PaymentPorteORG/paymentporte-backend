@@ -6,6 +6,7 @@ var cors = require('cors');
 var cookieParser = require('cookie-parser');
 const session = require('express-session');
 const Middlewares = require('./src/middleware/handlers');
+let db = require('./src/database/index')
 
 const app = express();
 app.use(cors());
@@ -19,7 +20,12 @@ app.use(
     })
 );
 
+/* Database connection */
+let connectToDb = db.connectMongoDatabase()
+
+/* Importing routes */
 const createWallet = require('./src/routes/wallet');
+const UserRoute = require('./src/routes/user');
 
 const PORT = config.get('development.server.port');
 
@@ -32,6 +38,7 @@ app.use((req, res, next) => {
 })
 
 app.use('/wallet', createWallet);
+app.use('/user', UserRoute);
 
 app.use(Middlewares.ErrorHandler);
 app.use(Middlewares.InvalidRoute);
