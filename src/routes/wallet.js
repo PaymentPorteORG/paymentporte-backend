@@ -48,13 +48,13 @@ router.get('/dashboard',auth.basicAuth,
 );
 
 /** creates a trustline with PORTE token */
-router.post('/createTrustline',auth.basicAuth,
+router.post('/createTrustline',auth.basicAuth,auth.userAuth,
     celebrate(WalletSchema.createTrustline),
     operations.createTrustline
 );
 
 /** sends the PORTE/XLM to others*/
-router.post('/send',auth.basicAuth,
+router.post('/send',auth.basicAuth,auth.userAuth,
     celebrate(WalletSchema.send),
     wallet.send
 );
@@ -63,5 +63,9 @@ router.post('/send',auth.basicAuth,
 router.post('/payCredits',auth.basicAuth, auth.userAuth,
     wallet.payCredits
 );
+
+router.post('/trustline',auth.basicAuth,auth.userAuth,
+    wallet.trustline
+)
 
 module.exports = router;

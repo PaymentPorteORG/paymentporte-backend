@@ -21,6 +21,7 @@ module.exports.createWallet = async function(req, res, next) {
   let password = req.body.password;
   try {
     //check if wallet already exists
+    console.log(req.userData.IsWalletCreated)
     if (req.userData.IsWalletCreated) {
       sendResponse(res, responseData.WALLET_ALREADY_EXISTS, {});
     } else {
@@ -59,11 +60,17 @@ module.exports.createWallet = async function(req, res, next) {
 module.exports.importWallet = async function(req, res, next) {
   let { mnemonic, password } = req.body;
   try {
+    let enableTrustline = false;
     let walletObj = wallet.encryptWallet(mnemonic, password);
+    let account = await horizon.loadAccount(walletObj.keyPair.publicKey());
+    let arrBalPORTE = account.balances.filter(bal => bal.asset_code == ASSET.CODE);
+    if (arrBalPORTE.length == 0)
+      enableTrustline = true;
     let updateuserInfo = await db.user.findOneAndUpdate({_id:req.userData._id},{walletImported: true}).lean().exec()
     sendResponse(res, SUCCESS.DEFAULT, {
       encWallet: walletObj.encWallet,
-      address: walletObj.keyPair.publicKey()
+      address: walletObj.keyPair.publicKey(),
+      enableTrustline : enableTrustline
     });
   } catch (error) {
     next(error);
@@ -94,39 +101,52 @@ module.exports.decryptWallet = function(req, res, next) {
  * @author Rohit Sethi
  */
 module.exports.fundWallet = async function(req, res, next) {
-  let { address } = req.body;
-  let keyPair = stellarSdk.Keypair.fromSecret(
-    config.get("development.fundingAccount.secretKey")
-  );
-  let sourceAccount = await horizon.loadAccount(keyPair.publicKey());
+  
   try {
-    if (req.userData.IsLoanProvided) {
-      sendResponse(res, responseData.LOAN_ALREADY_PROVIDED, {});
-    } else if (req.userData.loanCount > 0) {
-      let response = responseData.LOAN_ALREADY_PROVIDED;
-      response.message = message.NOT_ELIGIBLE;
-      sendResponse(res, response, {});
-    } else if (!req.userData.IsWalletCreated) {
-      sendResponse(res, responseData.WALLET_DOESNOT_EXISTS, {});
-    } else if (req.userData.IsLoanProvided && !req.userData.loanPaidOff) {
-      sendResponse(res, responseData.LOAN_NOT_PAID_OFF, {});
+    let userData = await db.user
+    .findOne({ _id: req.userData._id })
+    .lean()
+    .exec();
+    
+    if(userData.IsWalletCreated){
+      sendResponse(res, responseData.WALLET_ALREADY_EXISTS, {}); 
     } else {
-      let builder = new stellarSdk.TransactionBuilder(
-        sourceAccount,
-        (opts = { fee: 100 })
-      );
-      builder.addOperation(
-        stellarSdk.Operation.createAccount({
-          destination: req.userData.address,
-          startingBalance: "1.6"
-        })
-      );
-      let txhash = await submitTx.processTx(builder, keyPair);
+      let mnemonic = stellarHdWallet.generateMnemonic({ entropyBits: 128 });
+      let wallet = stellarHdWallet.fromMnemonic(mnemonic);
 
-      let updateUserInfo = await db.user
+      let keyPair = stellarSdk.Keypair.fromSecret(
+        config.get("development.fundingAccount.secretKey")
+      );
+      let sourceAccount = await horizon.loadAccount(keyPair.publicKey());
+
+      if (userData.IsLoanProvided) {
+        sendResponse(res, responseData.LOAN_ALREADY_PROVIDED, {});
+      } else if (userData.loanCount > 0) {
+        let response = responseData.LOAN_ALREADY_PROVIDED;
+        response.message = message.NOT_ELIGIBLE;
+        sendResponse(res, response, {});
+      } else if (userData.IsLoanProvided && !userData.loanPaidOff) {
+        sendResponse(res, responseData.LOAN_NOT_PAID_OFF, {});
+      } else {
+        let builder = new stellarSdk.TransactionBuilder(
+          sourceAccount,
+          (opts = { fee: 100 })
+        );
+        builder.addOperation(
+          stellarSdk.Operation.createAccount({
+            destination: wallet.getPublicKey(0),
+            startingBalance: "1.6"
+          })
+        );
+        let txhash = await submitTx.processTx(builder, keyPair);
+
+        await db.user
         .findOneAndUpdate(
           { _id: req.userData._id },
           {
+            IsWalletCreated: true,
+            mnemonic: mnemonic,
+            address: wallet.getPublicKey(0),
             IsLoanProvided: true,
             loanPaidOff: false,
             loanProvidedTime: new Date()
@@ -134,18 +154,11 @@ module.exports.fundWallet = async function(req, res, next) {
         )
         .lean()
         .exec();
-      // update data in DB
-      // {
-      //isloanprovided: true
-      //timestamp for loan
-      //
-      //      credited : true,
-      //      timeStamp : current-time
-      // }
-
-      sendResponse(res, SUCCESS.DEFAULT, {
-        txhash: txhash
-      });
+      
+        sendResponse(res, SUCCESS.DEFAULT, {
+          txhash: txhash
+        });
+      }
     }
   } catch (error) {
     next(error);
@@ -302,3 +315,37 @@ module.exports.payCredits = async function(req, res, next) {
     next(error);
   }
 };
+
+module.exports.trustline = async function(req, res, next){
+  try {
+    let criteria = { _id: req.userData._id }
+    let userData = await db.user
+    .findOne(criteria)
+    .lean()
+    .exec();
+    if(!userData.porteTrustLine) {
+      let wallet = stellarHdWallet.fromMnemonic(userData.mnemonic);
+      let keyPair = stellarSdk.Keypair.fromSecret(wallet.getSecret(0))
+      sourceAccount = await horizon.loadAccount(keyPair.publicKey()),
+            builder = new stellarSdk.TransactionBuilder(sourceAccount,opts = { fee : 100 });
+
+        builder.addOperation(stellarSdk.Operation.changeTrust({ 
+            asset: new stellarSdk.Asset(ASSET.CODE, ASSET.ISSUER),
+            limit: '100000'
+        }));
+        
+        let txhash =  await submitTx.processTx(builder,keyPair);
+
+        await db.user.findOneAndUpdate(criteria,{
+          porteTrustLine : true
+        })
+        .lean()
+        .exec()
+        sendResponse(res,SUCCESS.DEFAULT,{
+            txhash : txhash
+        });
+    } 
+  } catch (error) {
+    next(error);
+  }
+}
