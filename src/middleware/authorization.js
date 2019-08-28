@@ -104,6 +104,7 @@ let verifyToken = async function(token) {
     } else {
       let response = responseData.UNAUTHORISED;
       response.message = message.INVALID_TOKEN;
+      tokenInfo = response
       return tokenInfo;
     }
   } catch (error) {
