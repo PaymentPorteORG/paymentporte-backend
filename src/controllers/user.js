@@ -95,7 +95,8 @@ module.exports.loginUser = async function(req, res, next) {
           accessToken
         );
         sendResponse(res, responseData.LOGIN_SUCCESS, {
-          accessToken: accessToken
+          accessToken: accessToken,
+          IsWalletCreated: updateUser.IsWalletCreated
         });
       }
     } else {

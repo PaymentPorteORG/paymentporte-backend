@@ -41,7 +41,7 @@ module.exports.userAuth = async (req, res, next) => {
       tokenType: "Bearer"
     };
     let authorization = req.headers.access_token;
-    console.log(authorization)
+    console.log(authorization);
     if (authorization) {
       const [tokenType, token] = authorization.split(/\s+/);
       if (
@@ -54,10 +54,9 @@ module.exports.userAuth = async (req, res, next) => {
       }
 
       let tokenData = await verifyToken(token);
-      console.log(tokenData)
-      if (!tokenData || !tokenData.userData) {
-        let response = responseData.UNAUTHORISED;
-        response.message = message.TOKEN_EXPIRED;
+      if (!tokenData.userData) {
+        console.log("in if")
+        console.log(tokenData,"---------------------->>")
         return Promise.reject(sendResponse(res, tokenData, {}));
       } else {
         req.userData = tokenData.userData;
@@ -78,35 +77,42 @@ module.exports.userAuth = async (req, res, next) => {
 let verifyToken = async function(token) {
   try {
     let tokenInfo = {};
-    let result = await Jwt.verify(token, cert, { algorithms: ["HS256"] });
-    if (result) {
-      let user = await db.user
-        .findById(result.id)
-        .lean()
-        .exec();
-      if (user && user.status == APP_CONSTANT.userStatus.ACTIVE) {
-        if (result.loginTime == user.loginTime) {
-          tokenInfo.userData = user;
-          // return tokenInfo;
-        } else {
+    return await Jwt.verify(
+      token,
+      cert,
+      { algorithms: ["HS256"] },
+      async (err, result) => {
+        if (err) {
           let response = responseData.UNAUTHORISED;
-          response.message = message.SESSION_EXPIRED;
+          response.message = message.INVALID_TOKEN;
           tokenInfo = response;
-          // return tokenInfo;
+          tokenInfo.userData = false;
+          return tokenInfo;
+        } else {
+          let user = await db.user
+            .findById(result.id)
+            .lean()
+            .exec();
+          if (user && user.status == APP_CONSTANT.userStatus.ACTIVE) {
+            if (result.loginTime == user.loginTime) {
+              tokenInfo.userData = user;
+              // return tokenInfo;
+            } else {
+              let response = responseData.UNAUTHORISED;
+              response.message = message.SESSION_EXPIRED;
+              tokenInfo = response;
+              // return tokenInfo;
+            }
+          } else {
+            let response = responseData.UNAUTHORISED;
+            response.message = message.UNAUTHORISED;
+            tokenInfo = response;
+            // return tokenInfo;
+          }
+          return tokenInfo;
         }
-      } else {
-        let response = responseData.UNAUTHORISED;
-        response.message = message.UNAUTHORISED;
-        tokenInfo = response;
-        // return tokenInfo;
       }
-      return tokenInfo
-    } else {
-      let response = responseData.UNAUTHORISED;
-      response.message = message.INVALID_TOKEN;
-      tokenInfo = response
-      return tokenInfo;
-    }
+    );
   } catch (error) {
     console.log(error);
     throw error;

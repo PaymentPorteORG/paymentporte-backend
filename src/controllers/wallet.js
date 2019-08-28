@@ -56,7 +56,7 @@ module.exports.createWallet = async function(req, res, next) {
  * @description imports the wallet
  * @author Rohit Sethi
  */
-module.exports.importWallet = function(req, res, next) {
+module.exports.importWallet = async function(req, res, next) {
   let { mnemonic, password } = req.body;
   try {
     let walletObj = wallet.encryptWallet(mnemonic, password);
