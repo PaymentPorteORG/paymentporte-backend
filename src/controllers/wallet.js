@@ -342,7 +342,8 @@ module.exports.trustline = async function(req, res, next){
         .lean()
         .exec()
         sendResponse(res,SUCCESS.DEFAULT,{
-            txhash : txhash
+            txhash : txhash,
+            address : keyPair.publicKey() 
         });
     } 
   } catch (error) {
