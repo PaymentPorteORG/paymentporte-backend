@@ -94,13 +94,11 @@ module.exports.loginUser = async function(req, res, next) {
           userData[0],
           accessToken
         );
-        let isWalletCreated = false;
-        if(userData[0].IsWalletCreated) {
-          isWalletCreated = true;
-        }
         sendResponse(res, responseData.LOGIN_SUCCESS, {
           accessToken: accessToken,
-          isWalletCreated : isWalletCreated
+          isWalletCreated : userData[0].IsWalletCreated,
+          IsLoanProvided : userData[0].IsLoanProvided,
+          loanPaidOff : userData[0].loanPaidOff
         });
       }
     } else {
