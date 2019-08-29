@@ -265,7 +265,6 @@ module.exports.dashboard = async function(req, res, next) {
 module.exports.payCredits = async function(req, res, next) {
   // let { mnemonic } = req.body; // for testing only
   try {
-    console.log(req.userData.IsLoanProvided);
     if (!req.userData.IsLoanProvided) {
       sendResponse(res, responseData.LOAN_NOT_EXISTS, {});
     } else if (req.userData.loanPaidOff) {
@@ -274,11 +273,18 @@ module.exports.payCredits = async function(req, res, next) {
       let wallet = stellarHdWallet.fromMnemonic(req.userData.mnemonic); // get user's mnemonic from DB
       let keyPair = stellarSdk.Keypair.fromSecret(wallet.getSecret(0));
       let sourceAccount = await horizon.loadAccount(wallet.getPublicKey(0));
+
+      let balXLM = sourceAccount.balances.filter(bal => bal.asset_type == "native")[0]
+      .balance;
+      
+      if (parseFloat(balXLM) < (parseFloat('1.6') + 1.5)) {
+        throw new Error("insufficient balance");
+      }
+
       let builder = new stellarSdk.TransactionBuilder(
         sourceAccount,
         (opts = { fee: 100 })
       );
-
       builder.addOperation(
         stellarSdk.Operation.payment({
           destination: config.get("development.fundingAccount.publicKey"),
@@ -301,14 +307,20 @@ module.exports.payCredits = async function(req, res, next) {
         .lean()
         .exec();
 
-      //update DB.
-      /* 1) get mnemonic from db
+        let userData = await db.user.findOne({ _id: req.userData._id})
+        .lean()
+        .exec()
+
+        //update DB.
+        /* 1) get mnemonic from db
             2) isloan provided , paidoff check
             3) all goes well update paidoff
              */
 
       sendResponse(res, SUCCESS.DEFAULT, {
-        txhash: txhash
+        txhash: txhash,
+        mnemonic : userData.mnemonic,
+        address : userData.address
       });
     }
   } catch (error) {
@@ -345,6 +357,10 @@ module.exports.trustline = async function(req, res, next){
             txhash : txhash,
             address : keyPair.publicKey() 
         });
+    } else {
+      sendResponse(res,SUCCESS.DEFAULT,{
+        address :userData.address
+      });
     } 
   } catch (error) {
     next(error);
