@@ -98,7 +98,8 @@ module.exports.loginUser = async function(req, res, next) {
           accessToken: accessToken,
           isWalletCreated : userData[0].IsWalletCreated,
           IsLoanProvided : userData[0].IsLoanProvided,
-          loanPaidOff : userData[0].loanPaidOff
+          loanPaidOff : userData[0].loanPaidOff,
+          address : userData[0].address
         });
       }
     } else {
