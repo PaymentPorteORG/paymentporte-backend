@@ -11,6 +11,7 @@ const responseData = require("./../utils/reponseStatus");
 var db = require("./../models/index");
 var APP_CONSTANT = require("./../utils/constants");
 var message = require("./../utils/responseMessages");
+const QRCode = require('qrcode')
 
 /**
  * @method post
@@ -263,7 +264,6 @@ module.exports.dashboard = async function(req, res, next) {
  * @author Rohit Sethi
  */
 module.exports.payCredits = async function(req, res, next) {
-  // let { mnemonic } = req.body; // for testing only
   try {
     if (!req.userData.IsLoanProvided) {
       sendResponse(res, responseData.LOAN_NOT_EXISTS, {});
@@ -311,11 +311,11 @@ module.exports.payCredits = async function(req, res, next) {
         .lean()
         .exec()
 
-        //update DB.
-        /* 1) get mnemonic from db
-            2) isloan provided , paidoff check
-            3) all goes well update paidoff
-             */
+      //update DB.
+        /*1) get mnemonic from db
+          2) isloan provided , paidoff check
+          3) all goes well update paidoff
+        */
 
       sendResponse(res, SUCCESS.DEFAULT, {
         txhash: txhash,
@@ -362,6 +362,18 @@ module.exports.trustline = async function(req, res, next){
         address :userData.address
       });
     } 
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports.receive = async function(req, res, next) {
+  let { address }= req.query
+  try {
+    let data =await QRCode.toDataURL(address);
+    sendResponse(res,SUCCESS.DEFAULT,{
+      QRcode : (data.split(','))[1]
+    });
   } catch (error) {
     next(error);
   }

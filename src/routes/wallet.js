@@ -64,8 +64,15 @@ router.post('/payCredits',auth.basicAuth, auth.userAuth,
     wallet.payCredits
 );
 
+/** creates trustline for new users */
 router.post('/trustline',auth.basicAuth,auth.userAuth,
     wallet.trustline
-)
+);
+
+/** gets the QRcode created with address of user */
+router.get('/receive',auth.basicAuth,auth.userAuth,
+    celebrate(WalletSchema.getBalance),
+    wallet.receive
+);
 
 module.exports = router;
