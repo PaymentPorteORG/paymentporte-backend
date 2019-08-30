@@ -372,7 +372,7 @@ module.exports.receive = async function(req, res, next) {
   try {
     let data =await QRCode.toDataURL(address);
     sendResponse(res,SUCCESS.DEFAULT,{
-      QRcode : (data.split(','))[1]
+      QRcode : data
     });
   } catch (error) {
     next(error);
