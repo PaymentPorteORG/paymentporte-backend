@@ -205,8 +205,18 @@ module.exports.send = async function(req, res, next) {
       (opts = { fee: 100 })
     );
 
-    if (parseFloat(sourceAccount.balances[0].balance) < parseFloat(amount)) {
-      throw new Error("insufficient balance");
+    
+    
+    if(isPorte) {
+      let balPORTE = getPorteBal(sourceAccount);     
+        if(balPORTE < parseFloat(amount)) 
+        throw new Error("insufficient balance");
+    } else {
+      let balXLM = sourceAccount.balances.filter(bal => bal.asset_type == "native")[0]
+      .balance;
+      if (parseFloat(balXLM) < (parseFloat(amount) + 1.5)) {
+        throw new Error("insufficient balance");
+      }
     }
 
     let paymentObj = {
@@ -335,7 +345,9 @@ module.exports.trustline = async function(req, res, next){
     .findOne(criteria)
     .lean()
     .exec();
+     console.log(userData);
     if(!userData.porteTrustLine) {
+    console.log('------------------>>>>>>>>>>>>>',userData)
       let wallet = stellarHdWallet.fromMnemonic(userData.mnemonic);
       let keyPair = stellarSdk.Keypair.fromSecret(wallet.getSecret(0))
       sourceAccount = await horizon.loadAccount(keyPair.publicKey()),
