@@ -97,6 +97,7 @@ module.exports.loginUser = async function(req, res, next) {
         sendResponse(res, responseData.LOGIN_SUCCESS, {
           accessToken: accessToken,
           isWalletCreated : userData[0].IsWalletCreated,
+          walletImported : userData[0].walletImported,
           IsLoanProvided : userData[0].IsLoanProvided,
           loanPaidOff : userData[0].loanPaidOff,
           address : userData[0].address
