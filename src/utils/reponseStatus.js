@@ -53,8 +53,8 @@ module.exports = {
         message: message.LOAN_NOT_PAID_OFF
     },
     LOAN_NOT_EXISTS :{
-        httpCode: 404,
-        statusCode: 404,
+        httpCode: 405,
+        statusCode: 405,
         message: message.LOAN_DOES_NOT_EXISTS
     },
     NO_PENDING_AMOUNT:{

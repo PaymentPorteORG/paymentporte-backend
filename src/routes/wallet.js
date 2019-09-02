@@ -20,7 +20,7 @@ router.post('/importWallet',auth.basicAuth, auth.userAuth,
 );
 
 /** decrypt the user wallet data */
-router.post('/decryptWallet',auth.basicAuth,
+router.post('/decryptWallet',auth.basicAuth,auth.userAuth,
     celebrate(WalletSchema.decryptWallet),
     wallet.decryptWallet
 );
