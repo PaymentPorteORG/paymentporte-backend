@@ -89,7 +89,8 @@ module.exports.decryptWallet = function(req, res, next) {
     let walletObj = wallet.decryptWallet(encWallet, password);
     sendResponse(res, SUCCESS.DEFAULT, {
       mnemonic: walletObj.mnemonic,
-      address: walletObj.keyPair.publicKey()
+      address: walletObj.keyPair.publicKey(),
+      privateKey : walletObj.keyPair.secret()
     });
   } catch (error) {
     next(error);
