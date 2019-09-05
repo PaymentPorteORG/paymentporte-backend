@@ -20,7 +20,7 @@ router.post('/importWallet',auth.basicAuth, auth.userAuth,
 );
 
 /** decrypt the user wallet data */
-router.post('/decryptWallet',auth.basicAuth,
+router.post('/decryptWallet',auth.basicAuth,auth.userAuth,
     celebrate(WalletSchema.decryptWallet),
     wallet.decryptWallet
 );
@@ -48,13 +48,13 @@ router.get('/dashboard',auth.basicAuth,
 );
 
 /** creates a trustline with PORTE token */
-router.post('/createTrustline',auth.basicAuth,
+router.post('/createTrustline',auth.basicAuth,auth.userAuth,
     celebrate(WalletSchema.createTrustline),
     operations.createTrustline
 );
 
 /** sends the PORTE/XLM to others*/
-router.post('/send',auth.basicAuth,
+router.post('/send',auth.basicAuth,auth.userAuth,
     celebrate(WalletSchema.send),
     wallet.send
 );
@@ -62,6 +62,17 @@ router.post('/send',auth.basicAuth,
 /** pays off the loan provided on wallet creation */
 router.post('/payCredits',auth.basicAuth, auth.userAuth,
     wallet.payCredits
+);
+
+/** creates trustline for new users */
+router.post('/trustline',auth.basicAuth,auth.userAuth,
+    wallet.trustline
+);
+
+/** gets the QRcode created with address of user */
+router.get('/receive',auth.basicAuth,auth.userAuth,
+    celebrate(WalletSchema.getBalance),
+    wallet.receive
 );
 
 module.exports = router;
