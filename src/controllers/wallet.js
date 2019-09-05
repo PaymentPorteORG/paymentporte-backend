@@ -9,8 +9,8 @@ const { getPorteBal } = require("../utils/balances");
 const wallet = require("../utils/getWallet");
 const responseData = require("./../utils/reponseStatus");
 var db = require("./../models/index");
-var APP_CONSTANT = require("./../utils/constants");
 var message = require("./../utils/responseMessages");
+var commonFunc = require("./../utils/commonFunctions");
 
 /**
  * @method post
@@ -27,13 +27,16 @@ module.exports.createWallet = async function(req, res, next) {
       let mnemonic = stellarHdWallet.generateMnemonic({ entropyBits: 128 }), // To do : Ask user to save mnemonic as backup to restore wallet in future
         walletObj = wallet.encryptWallet(mnemonic, password);
 
+      const mnemonicHash = await commonFunc.encrypt(mnemonic)
+      console.log(mnemonicHash,"mnemonicHash---->>>")
       //update wallet info in db for user
       let updateUserInfo = await db.user
         .findOneAndUpdate(
           { _id: req.userData._id },
           {
             IsWalletCreated: true,
-            mnemonic: mnemonic,
+            //mnemonic: mnemonic,
+            encryptedMnemonic:mnemonicHash,
             address: walletObj.keyPair.publicKey()
           }
         )
@@ -59,6 +62,8 @@ module.exports.createWallet = async function(req, res, next) {
 module.exports.importWallet = async function(req, res, next) {
   let { mnemonic, password } = req.body;
   try {
+    // let decryptedText = await commonFunc.decrypt(mnemonic)
+    // console.log(decryptedText,"--->> decryptedText")
     let walletObj = wallet.encryptWallet(mnemonic, password);
     let updateuserInfo = await db.user.findOneAndUpdate({_id:req.userData._id},{walletImported: true}).lean().exec()
     sendResponse(res, SUCCESS.DEFAULT, {
@@ -258,7 +263,9 @@ module.exports.payCredits = async function(req, res, next) {
     } else if (req.userData.loanPaidOff) {
       sendResponse(res, responseData.NO_PENDING_AMOUNT, {});
     } else {
-      let wallet = stellarHdWallet.fromMnemonic(req.userData.mnemonic); // get user's mnemonic from DB
+      let decryptedText = await commonFunc.decrypt(req.userData.encryptedMnemonic)
+      console.log(decryptedText,"--->> decryptedText")
+      let wallet = stellarHdWallet.fromMnemonic(decryptedText); // get user's mnemonic from DB
       let keyPair = stellarSdk.Keypair.fromSecret(wallet.getSecret(0));
       let sourceAccount = await horizon.loadAccount(wallet.getPublicKey(0));
       let builder = new stellarSdk.TransactionBuilder(

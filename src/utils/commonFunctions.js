@@ -2,6 +2,8 @@ var bcrypt = require("bcrypt");
 const config = require("config");
 var db = require("./../models/index");
 var APP_CONSTANT = require("./../utils/constants");
+const crypto = require("crypto");
+const secret = config.get("development.ENCRYPTING_SECRET");
 
 
 module.exports.encryptPassword = function(password) {
@@ -10,9 +12,9 @@ module.exports.encryptPassword = function(password) {
   });
 };
 
-module.exports.decryptPassword = function(oldPassword,newPassword) {
+module.exports.decryptPassword = function(oldPassword, newPassword) {
   return new Promise((resolve, reject) => {
-    resolve(bcrypt.compareSync(newPassword,oldPassword))
+    resolve(bcrypt.compareSync(newPassword, oldPassword));
   });
 };
 
@@ -38,3 +40,16 @@ module.exports.validateUniqueness = function(params) {
   }
 };
 
+module.exports.encrypt = function(text) {
+  let cipher = crypto.createCipher("aes-256-cbc", secret);
+  let encrypted = cipher.update(text,'utf8','hex');
+  encrypted += cipher.final('hex');
+  return encrypted;
+};
+
+module.exports.decrypt = function(text) {
+  var decipher = crypto.createDecipher('aes-256-cbc',secret)
+  var dec = decipher.update(text,'hex','utf8')
+  dec += decipher.final('utf8');
+  return dec;
+};
