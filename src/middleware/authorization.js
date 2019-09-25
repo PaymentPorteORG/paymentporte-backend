@@ -59,6 +59,7 @@ module.exports.userAuth = async (req, res, next) => {
         console.log(tokenData,"---------------------->>")
         return Promise.reject(sendResponse(res, tokenData, {}));
       } else {
+        req.tokenData = tokenData
         req.userData = tokenData.userData;
       }
     } else {
@@ -94,7 +95,7 @@ let verifyToken = async function(token) {
             .lean()
             .exec();
           if (user && user.status == APP_CONSTANT.userStatus.ACTIVE) {
-            if (result.loginTime == user.loginTime) {
+            if (result.loginTime == user.loginTime && user.isLogin) {
               tokenInfo.userData = user;
               // return tokenInfo;
             } else {

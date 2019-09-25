@@ -75,4 +75,15 @@ router.get('/receive',auth.basicAuth,auth.userAuth,
     wallet.receive
 );
 
+/** delete mnemonic */
+router.post('/deleteMnemonic',auth.basicAuth,auth.userAuth,
+    // celebrate(WalletSchema.getBalance),
+    wallet.deleteMnemonic
+);
+
+/** delete mnemonic */
+router.get('/currencyConversion',auth.basicAuth,auth.userAuth,
+    wallet.currencyConversion
+);
+
 module.exports = router;

@@ -57,3 +57,11 @@ module.exports.send = {
         isPorte : WALLET.ISPORTE
     }
 }
+
+module.exports.currencyChange = {
+    body: {
+       currency1 : Joi.string().required(),
+       currency2 : Joi.string().required(),
+       amount : Joi.number().required(),
+    }
+}

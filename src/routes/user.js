@@ -17,6 +17,35 @@ router.post('/logIn', auth.basicAuth,
     User.loginUser
 );
 
+/** logout a user */
+router.post('/logOut', auth.basicAuth, auth.userAuth,
+    // celebrate(UserSchema.userLogOut),
+    User.logOutUser
+);
+
+/** change a user's password */
+router.post('/changePassword', auth.basicAuth, auth.userAuth,
+    celebrate(UserSchema.changePassword),
+    User.changePassword
+);
+
+/** forgot password */
+router.post('/forgotPassword', auth.basicAuth,
+    celebrate(UserSchema.forgotPassword),
+    User.forgotPassword
+);
+
+/** reset password */
+router.post('/resetPassword', auth.basicAuth,
+    celebrate(UserSchema.resetPassword),
+    User.resetPassword
+);
+
+/** reset password */
+router.post('/contactUs', auth.basicAuth, auth.userAuth,
+    celebrate(UserSchema.contactUs),
+    User.contactUs
+);
 
 
 module.exports = router;

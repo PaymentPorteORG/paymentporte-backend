@@ -17,6 +17,10 @@ module.exports = {
     LOAN_NOT_PAID_OFF : 'Loan needs to be paid off',
     LOAN_DOES_NOT_EXISTS : 'Loan does not exists.',
     NO_PENDING_AMOUNT : 'No pending amount',
-    NOT_ELIGIBLE: 'User not eligible for loan'
-    
+    NOT_ELIGIBLE: 'User not eligible for loan',
+    LOG_OUT: 'User logout success!',
+    INCORRECT_OLD_PASSWORD: 'Invalid old password!',
+    PASSWORD_UPDATED_SUCCESSFULLY: 'Password updated successfully.',
+    LINK_EXPIRED : 'Link expired!',
+    CONTACT_US : 'Your message is received. we will get back to you shortly.',
 }

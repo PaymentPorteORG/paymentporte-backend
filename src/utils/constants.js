@@ -25,5 +25,7 @@ module.exports = {
         EMAIL: 1,
         USERNAME: 2
     },
+    BASE_CUURENCY: 'XLM',
+    CONERSION_CURRENCY : 'USD',
     RANDOM_NUMBER_REFRESH_TOKEN:10
 }

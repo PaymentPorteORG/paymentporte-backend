@@ -61,5 +61,30 @@ module.exports = {
         httpCode: 404,
         statusCode: 404,
         message: message.NO_PENDING_AMOUNT
+    },
+    LOGOUT_SUCCESS:{
+        httpCode: 200,
+        statusCode: 200,
+        message: message.LOG_OUT
+    },
+    INVALID_OLD_PASSWORD:{
+        httpCode: 200,
+        statusCode: 200,
+        message: message.INCORRECT_OLD_PASSWORD
+    },
+    PASSWORD_CHANGE_SUCCESSFULLY:{
+        httpCode: 200,
+        statusCode: 200,
+        message: message.PASSWORD_UPDATED_SUCCESSFULLY
+    },
+    TOKEN_EXPIRED:{
+        httpCode: 401,
+        statusCode: 401,
+        message: message.LINK_EXPIRED
+    },
+    CONTACT_US_SUCCESS:{
+        httpCode: 200,
+        statusCode: 200,
+        message: message.CONTACT_US
     }
 }

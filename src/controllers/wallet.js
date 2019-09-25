@@ -11,7 +11,9 @@ const responseData = require("./../utils/reponseStatus");
 var db = require("./../models/index");
 var message = require("./../utils/responseMessages");
 var commonFunc = require("./../utils/commonFunctions");
-const QRCode = require('qrcode')
+const QRCode = require('qrcode');
+const curl = new (require( 'curl-request' ))();
+const constants = require('./../utils/constants')
 
 /**
  * @method post
@@ -29,7 +31,7 @@ module.exports.createWallet = async function(req, res, next) {
       let mnemonic = stellarHdWallet.generateMnemonic({ entropyBits: 128 }), // To do : Ask user to save mnemonic as backup to restore wallet in future
         walletObj = wallet.encryptWallet(mnemonic, password);
 
-      const mnemonicHash = await commonFunc.encrypt(mnemonic)
+      const mnemonicHash = await commonFunc.encrypt(mnemonic);
       console.log(mnemonicHash,"mnemonicHash---->>>")
       //update wallet info in db for user
       let updateUserInfo = await db.user
@@ -120,7 +122,7 @@ module.exports.fundWallet = async function(req, res, next) {
     } else {
       let mnemonic = stellarHdWallet.generateMnemonic({ entropyBits: 128 });
       let wallet = stellarHdWallet.fromMnemonic(mnemonic);
-
+      const mnemonicHash = await commonFunc.encrypt(mnemonic);
       let keyPair = stellarSdk.Keypair.fromSecret(
         config.get("development.fundingAccount.secretKey")
       );
@@ -152,7 +154,7 @@ module.exports.fundWallet = async function(req, res, next) {
           { _id: req.userData._id },
           {
             IsWalletCreated: true,
-            mnemonic: mnemonic,
+            encryptedMnemonic: mnemonicHash,
             address: wallet.getPublicKey(0),
             IsLoanProvided: true,
             loanPaidOff: false,
@@ -337,7 +339,7 @@ module.exports.payCredits = async function(req, res, next) {
 
       sendResponse(res, SUCCESS.DEFAULT, {
         txhash: txhash,
-        mnemonic : userData.mnemonic,
+        mnemonic : await commonFunc.decrypt(userData.encryptedMnemonic),
         address : userData.address
       });
     }
@@ -356,7 +358,8 @@ module.exports.trustline = async function(req, res, next){
      console.log(userData);
     if(!userData.porteTrustLine) {
     console.log('------------------>>>>>>>>>>>>>',userData)
-      let wallet = stellarHdWallet.fromMnemonic(userData.mnemonic);
+      let decryptMenomic = await commonFunc.decrypt(userData.encryptedMnemonic)
+      let wallet = stellarHdWallet.fromMnemonic(decryptMenomic);
       let keyPair = stellarSdk.Keypair.fromSecret(wallet.getSecret(0))
       sourceAccount = await horizon.loadAccount(keyPair.publicKey()),
             builder = new stellarSdk.TransactionBuilder(sourceAccount,opts = { fee : 100 });
@@ -394,6 +397,35 @@ module.exports.receive = async function(req, res, next) {
     sendResponse(res,SUCCESS.DEFAULT,{
       QRcode : data
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports.deleteMnemonic = async function(req, res, next) {
+  try {
+    let updateMnemonic = await db.user.findOneAndUpdate({_id: req.userData._id},{encryptedMnemonic : null}).lean().exec()
+    sendResponse(res,SUCCESS.DEFAULT,{})
+
+  } catch (error) {
+    console.log(error)
+    next(error);
+  }
+}
+
+module.exports.currencyConversion = async function (req, res, next) {
+  try {
+
+    let url = 'https://api.coinbase.com/v2/prices/'+constants.BASE_CUURENCY+"-"+ constants.CONERSION_CURRENCY +'/buy';
+      curl.get(url)
+      .then(({ statusCode, body, headers }) => {
+          let responseData = JSON.parse(body)
+          sendResponse(res,SUCCESS.DEFAULT,responseData.data);
+      })
+      .catch((e) => {
+        console.log(e);
+        throw e
+      });
   } catch (error) {
     next(error);
   }

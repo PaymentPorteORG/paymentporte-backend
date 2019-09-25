@@ -20,6 +20,12 @@ const UserSchema = new Schema({
   loanPaidOffTime: { type: Date },
   walletImported:{type: Boolean, default:false},
   address: { type: String },
+  passwordResetToken:{
+    token : String,
+    status : Boolean, // true -> used, false-> ununsed
+    expirationDate: Date,
+    OTP: Number
+  },
   // mnemonic: { type: String },
   encryptedMnemonic:{type: String},
   porteTrustLine: { type: Boolean },
