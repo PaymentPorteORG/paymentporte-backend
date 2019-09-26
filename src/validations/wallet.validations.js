@@ -29,6 +29,14 @@ module.exports.decryptWallet = {
     }
 }
 
+module.exports.changePin = {
+    body: {
+        encWallet : WALLET.ENCWALLET,
+        oldPassword : WALLET.PASSWORD,
+        newPassword : WALLET.PASSWORD
+    }
+}
+
 module.exports.getBalance = {
     query: {
         address : WALLET.ADDRESS

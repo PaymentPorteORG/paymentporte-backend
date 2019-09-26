@@ -430,3 +430,18 @@ module.exports.currencyConversion = async function (req, res, next) {
     next(error);
   }
 }
+
+
+module.exports.changePin = async function(req, res, next) {
+  let { encWallet, oldPassword , newPassword }= req.body
+  try {
+    console.log(encWallet);
+    let decWallet = wallet.decryptWallet(encWallet, oldPassword);
+    let newWallet = wallet.encryptWallet(decWallet.mnemonic,newPassword);
+    sendResponse(res,SUCCESS.DEFAULT,{
+      encWallet : newWallet.encWallet,
+    });
+  } catch (error) {
+    next(error);
+  }
+}

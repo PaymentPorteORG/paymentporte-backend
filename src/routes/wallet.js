@@ -86,4 +86,9 @@ router.get('/currencyConversion',auth.basicAuth,auth.userAuth,
     wallet.currencyConversion
 );
 
+router.post('/changePin',auth.basicAuth,auth.userAuth,
+    celebrate(WalletSchema.changePin),
+    wallet.changePin
+);
+
 module.exports = router;
