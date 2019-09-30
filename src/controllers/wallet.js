@@ -404,8 +404,13 @@ module.exports.receive = async function(req, res, next) {
 
 module.exports.deleteMnemonic = async function(req, res, next) {
   try {
-    let updateMnemonic = await db.user.findOneAndUpdate({_id: req.userData._id},{encryptedMnemonic : null}).lean().exec()
-    sendResponse(res,SUCCESS.DEFAULT,{})
+    if(!req.userData.loanPaidOff){
+      sendResponse(res,SUCCESS.LOAN_NOT_PAID_OFF,{})
+    }
+    else{
+      let updateMnemonic = await db.user.findOneAndUpdate({_id: req.userData._id},{encryptedMnemonic : null}).lean().exec()
+      sendResponse(res,SUCCESS.DEFAULT,{})
+    }
 
   } catch (error) {
     console.log(error)
