@@ -7,6 +7,7 @@ var cookieParser = require('cookie-parser');
 const session = require('express-session');
 const Middlewares = require('./src/middleware/handlers');
 let db = require('./src/database/index')
+let cron = require('./src/cronJob');
 
 const app = express();
 app.use(cors());
@@ -23,6 +24,8 @@ app.use(
 /* Database connection */
 let connectToDb = db.connectMongoDatabase()
 
+/* run cron */
+let runCron = cron.runCron()
 /* Importing routes */
 const createWallet = require('./src/routes/wallet');
 const UserRoute = require('./src/routes/user');
