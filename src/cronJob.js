@@ -6,12 +6,10 @@ var operation = require('./../src/controllers/operations')
 var commonFunc = require('./utils/commonFunctions')
 module.exports.runCron =async function (req, res, next){
     console.log("in cron")
-    cron.schedule('* * * * *', async () => {
+    cron.schedule('0 12 * * *', async () => {
         console.log('running a task every minute');
         deleteMnemonic()
-        // checkOutNotification();
-        // autoCancellation();
-    });
+    },'Asia/Kolkata');
 }
 
 
@@ -22,7 +20,6 @@ var deleteMnemonic = async function(){
             let loanDate = moment(getUsers[i].loanProvidedTime)
             let currentDate = moment()
             let diffrence = currentDate.diff(loanDate,'days')
-            console.log(diffrence,"----------->>",getUsers[i])
             if(diffrence >= 30){
                 let decryptMnemonic = await commonFunc.decrypt(getUsers[i].encryptedMnemonic)
                 console.log(decryptMnemonic,"mnemonic")
