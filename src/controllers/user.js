@@ -9,7 +9,8 @@ const config = require("config");
 var cert = config.get("development.jwtSecret");
 var Jwt = require("jsonwebtoken");
 var message = require('../utils/responseMessages')
-var moment = require('moment')
+var moment = require('moment');
+var emailSender = require('./../utils/email')
 
 /* Function to create a new user */
 module.exports.createNewUser = async function (req, res, next) {
@@ -51,6 +52,7 @@ module.exports.createNewUser = async function (req, res, next) {
           sendResponse(res, responseData.SIGNUP_SUCCESS, {
             accessToken: accessToken
           });
+          let sendMail =  emailSender.getHtml("welcome_html.html",{userName: user.userName},{email : user.email ,subject : "WELCOME TO STELLAR"});
         })
         .catch(error => {
           return Promise.reject(error);
