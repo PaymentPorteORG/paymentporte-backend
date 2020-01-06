@@ -1,7 +1,7 @@
 
 
 module.exports = {
-    EMAIL_ALREADY_EXITS : 'User already exists.',
+    EMAIL_ALREADY_EXITS : 'Email already exists.',
     SIGN_UP_SUCCESS : 'Sign up success.',
     USER_DOESNOT_EXISTS : 'User not registered.',
     INVALID_CREDENTIALS : 'Invalid credentials.',
