@@ -25,7 +25,7 @@
     "moment": "^2.24.0",
     "mongoose": "^5.6.11",
     "node-cron": "^2.0.3",
-    "nodemailer": "^6.4.2",
+    "nodemailer": "^6.4.16",
     "qrcode": "^1.4.1",
     "randomstring": "^1.1.5",
     "request": "^2.88.0",
